@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Story Generator ✨</title>
+    <style>
+        /* CSS: Making it look pretty */
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 3px solid #FFD700; /* Gold border */
+        }
+
+        h1 {
+            text-align: center;
+            color: #4169E1; /* Royal Blue */
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            background: #fff9c4; /* Light yellow background for inputs */
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #d35400;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+
+        .radio-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .radio-label {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-weight: normal;
+            color: #333;
+        }
+
+        /* Style when a radio button is clicked */
+        input[type="radio"]:checked + span {
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+            transform: scale(1.02);
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        #storyOutput {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            border: 2px dashed #4169E1;
+            min-height: 100px;
+            white-space: pre-wrap; /* Preserves paragraphs from AI */
+            line-height: 1.6;
+            font-size: 18px;
+        }
+
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🦄 Magic Story Generator 🚀</h1>
+
+    <!-- 1. CHARACTERS -->
+    <div class="input-group">
+        <label>Who is in the story?</label>
+        <input type="text" id="characters" placeholder="e.g. Shinchan and a flying dinosaur">
+    </div>
+
+    <!-- 2. AGE GROUP -->
+    <div class="input-group">
+        <label>Age Group</label>
+        <div class="radio-options">
+            <label class="radio-label"><input type="radio" name="age" value="4-6 years" checked> <span>4-6 Years</span></label>
+            <label class="radio-label"><input type="radio" name="age" value="6-8 years"> <span>6-8 Years</span></label>
+            <label class="radio-label"><input type="radio" name="age" value="8-10 years"> <span>8-10 Years</span></label>
+            <label class="radio-label"><input type="radio" name="age" value="10+ years"> <span>10+ Years</span></label>
+        </div>
+    </div>
+
+    <!-- 3. WORD LIMIT -->
+    <div class="input-group">
+        <label>Story Length</label>
+        <div class="radio-options">
+            <label class="radio-label"><input type="radio" name="length" value="100 words"> <span>Tiny (100)</span></label>
+            <label class="radio-label"><input type="radio" name="length" value="200 words"> <span>Short (200)</span></label>
+            <label class="radio-label"><input type="radio" name="length" value="300 words" checked> <span>Medium (300)</span></label>
+            <label class="radio-label"><input type="radio" name="length" value="500 words"> <span>Long (500)</span></label>
+            <label class="radio-label"><input type="radio" name="length" value="Unlimited"> <span>Epic (Unlimited)</span></label>
+        </div>
+    </div>
+
+    <button id="generateBtn" onclick="generateStory()">✨ Write My Story!</button>
+
+    <div id="storyOutput">
+        Your magical story will appear here...
+    </div>
+</div>
+
+<script>
+    async function generateStory() {
+        // 1. Get elements from HTML
+        const btn = document.getElementById('generateBtn');
+        const output = document.getElementById('storyOutput');
+        
+        // 2. Get values from inputs
+        const charInput = document.getElementById('characters').value;
+        // Logic to get the selected radio button
+        const ageInput = document.querySelector('input[name="age"]:checked').value;
+        const lengthInput = document.querySelector('input[name="length"]:checked').value;
+
+        // Basic validation
+        if (!charInput) {
+            alert("Please enter some characters first!");
+            return;
+        }
+
+        // 3. Show Loading State
+        btn.disabled = true;
+        btn.innerText = "✨ Magic is happening...";
+        output.innerHTML = "<div class='loading'>🤖 The AI is thinking... (This takes about 5-10 seconds)</div>";
+
+        // 4. Send data to Python Backend
+        try {
+            const response = await fetch('http://127.0.0.1:8000/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    characters: charInput,
+                    age_group: ageInput,
+                    word_limit: lengthInput
+                })
+            });
+
+            const data = await response.json();
+
+            // 5. Display the result
+            if (data.story) {
+                output.innerText = data.story;
+            } else {
+                output.innerText = "❌ Something went wrong. Check the console.";
+            }
+
+        } catch (error) {
+            console.error("Error:", error);
+            output.innerText = "❌ Error: Could not connect to the server. Is Python running?";
+        } finally {
+            // 6. Reset Button
+            btn.disabled = false;
+            btn.innerText = "✨ Write My Story!";
+        }
+    }
+</script>
+
+</body>
+</html>
